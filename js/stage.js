@@ -14,6 +14,8 @@ class Stage {
         
         this.panX = 0;
         this.panY = 0;
+        this.stageWidth = 800;
+        this.stageHeight = 600;
         
         this.gridSize = 50;
         this.handleSize = 10;
@@ -117,8 +119,57 @@ class Stage {
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
         
+        this.centerStage();
+    }
+
+    centerStage() {
         this.panX = this.canvas.width / 2;
         this.panY = this.canvas.height / 2;
+    }
+
+    setStageSize(width, height) {
+        const nextWidth = Math.round(Number(width));
+        const nextHeight = Math.round(Number(height));
+        if (
+            !Number.isFinite(nextWidth) ||
+            nextWidth <= 0 ||
+            !Number.isFinite(nextHeight) ||
+            nextHeight <= 0
+        ) {
+            return;
+        }
+
+        if (this.stageWidth === nextWidth && this.stageHeight === nextHeight) {
+            return;
+        }
+
+        this.stageWidth = nextWidth;
+        this.stageHeight = nextHeight;
+        this.centerStage();
+        this.render();
+    }
+
+    getStageBounds() {
+        return {
+            left: -this.stageWidth / 2,
+            top: -this.stageHeight / 2,
+            right: this.stageWidth / 2,
+            bottom: this.stageHeight / 2
+        };
+    }
+
+    getStageScreenRect() {
+        const bounds = this.getStageBounds();
+        const topLeft = this.worldToScreen(bounds.left, bounds.top);
+        const bottomRight = this.worldToScreen(bounds.right, bounds.bottom);
+        const x = Math.min(topLeft.x, bottomRight.x);
+        const y = Math.min(topLeft.y, bottomRight.y);
+        return {
+            x,
+            y,
+            width: Math.abs(bottomRight.x - topLeft.x),
+            height: Math.abs(bottomRight.y - topLeft.y)
+        };
     }
 
     setZoom(zoom) {
@@ -137,8 +188,7 @@ class Stage {
 
     resetZoom() {
         this.zoom = 1;
-        this.panX = this.canvas.width / 2;
-        this.panY = this.canvas.height / 2;
+        this.centerStage();
         this.render();
         return this.zoom;
     }
@@ -224,6 +274,7 @@ class Stage {
         ctx.fillStyle = '#1e1e2e';
         ctx.fillRect(0, 0, w, h);
         
+        this.drawStageBackground();
         this.drawGrid();
         this.drawOrigin();
         
@@ -247,6 +298,8 @@ class Stage {
                 }
             });
         }
+
+        this.drawStageBorder();
     }
     
     drawSingleObject(obj) {
@@ -333,32 +386,79 @@ class Stage {
         ctx.restore();
     }
 
+    drawStageBackground() {
+        const ctx = this.ctx;
+        const rect = this.getStageScreenRect();
+
+        ctx.save();
+        ctx.fillStyle = '#181827';
+        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+        ctx.restore();
+    }
+
+    drawStageBorder() {
+        const ctx = this.ctx;
+        const rect = this.getStageScreenRect();
+
+        ctx.save();
+        ctx.strokeStyle = '#596178';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+
+        if (rect.width >= 120 && rect.height >= 36) {
+            const label = `${this.stageWidth} x ${this.stageHeight}`;
+            ctx.font = '12px sans-serif';
+            const labelWidth = ctx.measureText(label).width + 12;
+            ctx.fillStyle = 'rgba(24, 24, 39, 0.85)';
+            ctx.fillRect(rect.x + 8, rect.y + 8, labelWidth, 22);
+            ctx.fillStyle = '#b6bdd4';
+            ctx.fillText(label, rect.x + 14, rect.y + 23);
+        }
+
+        ctx.restore();
+    }
+
     drawGrid() {
         const ctx = this.ctx;
-        const gridSize = this.gridSize * this.zoom;
+        const bounds = this.getStageBounds();
+        const rect = this.getStageScreenRect();
         
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+        ctx.clip();
+
         ctx.strokeStyle = '#2a2a3e';
         ctx.lineWidth = 1;
-        
-        const startX = this.panX % gridSize;
-        const startY = this.panY % gridSize;
+
+        const firstGridX = Math.ceil(bounds.left / this.gridSize) * this.gridSize;
+        const firstGridY = Math.ceil(bounds.top / this.gridSize) * this.gridSize;
         
         ctx.beginPath();
-        for (let x = startX; x < this.canvas.width; x += gridSize) {
+        for (let worldX = firstGridX; worldX <= bounds.right; worldX += this.gridSize) {
+            const x = this.worldToScreen(worldX, 0).x;
             ctx.moveTo(x, 0);
             ctx.lineTo(x, this.canvas.height);
         }
-        for (let y = startY; y < this.canvas.height; y += gridSize) {
+        for (let worldY = firstGridY; worldY <= bounds.bottom; worldY += this.gridSize) {
+            const y = this.worldToScreen(0, worldY).y;
             ctx.moveTo(0, y);
             ctx.lineTo(this.canvas.width, y);
         }
         ctx.stroke();
+        ctx.restore();
     }
 
     drawOrigin() {
         const ctx = this.ctx;
         const origin = this.worldToScreen(0, 0);
+        const rect = this.getStageScreenRect();
         
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rect.x, rect.y, rect.width, rect.height);
+        ctx.clip();
+
         ctx.strokeStyle = '#ff6b6b';
         ctx.lineWidth = 2;
         
@@ -372,6 +472,7 @@ class Stage {
         ctx.fillStyle = '#ff6b6b';
         ctx.font = '12px sans-serif';
         ctx.fillText('(0, 0)', origin.x + 8, origin.y - 8);
+        ctx.restore();
     }
 
     getHandleAtPosition(screenX, screenY) {

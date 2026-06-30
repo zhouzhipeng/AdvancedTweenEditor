@@ -243,6 +243,7 @@ class App {
         this.properties = new PropertiesPanel();
         this.bezierEditor = new BezierEditor();
         this.fileIO = new FileIO();
+        this.projectInfo = null;
         
         // Multi-object management
         this.objects = [];
@@ -260,6 +261,43 @@ class App {
         this.updateUI();
         this.renderObjectList();
         this.stage.render();
+        this.loadProjectInfo();
+    }
+
+    async loadProjectInfo() {
+        const bridge = window.gdevelopAdvancedTweenBridge;
+        if (!bridge || !bridge.getProjectInfo) return;
+
+        try {
+            this.applyProjectInfo(await bridge.getProjectInfo());
+        } catch (error) {
+            console.warn('Failed to load GDevelop project info.', error);
+        }
+    }
+
+    applyProjectInfo(projectInfo) {
+        if (!projectInfo) return;
+
+        const width = Number(projectInfo.gameResolutionWidth);
+        const height = Number(projectInfo.gameResolutionHeight);
+        if (
+            !Number.isFinite(width) ||
+            width <= 0 ||
+            !Number.isFinite(height) ||
+            height <= 0
+        ) {
+            return;
+        }
+
+        this.projectInfo = {
+            ...projectInfo,
+            gameResolutionWidth: Math.round(width),
+            gameResolutionHeight: Math.round(height)
+        };
+        this.stage.setStageSize(
+            this.projectInfo.gameResolutionWidth,
+            this.projectInfo.gameResolutionHeight
+        );
     }
     
     // Object management methods
