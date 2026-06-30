@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdvancedTween Editor for GDevelop Extension</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Toolbar -->
+        <header id="toolbar">
+            <div class="toolbar-group">
+                <label>Tween name:</label>
+                <input type="text" id="input-name" placeholder="animation_name" value="untitled">
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group">
+                <button id="btn-new" title="New (Ctrl+N)">New</button>
+                <button id="btn-load-all" title="Load All Objects">Load All</button>
+                <button id="btn-save-all" title="Save All Objects">Save All</button>
+                <input type="file" id="file-input-all" accept=".atproj" hidden>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group">
+                <button id="btn-undo" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+                <button id="btn-redo" title="Redo (Ctrl+Y)" disabled>↷ Redo</button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group zoom-controls">
+                <button id="btn-zoom-out" title="Zoom Out">−</button>
+                <span id="zoom-level">100%</span>
+                <button id="btn-zoom-in" title="Zoom In">+</button>
+                <button id="btn-zoom-reset" title="Reset Zoom">Reset</button>
+            </div>
+            <div class="toolbar-separator"></div>
+            <div class="toolbar-group">
+                <button id="btn-copy-ai-prompt" title="Copy AI Prompt to Clipboard">Copy AI Prompt</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- Object List Panel -->
+            <aside id="object-list-panel">
+                <div id="object-list-header">
+                    <span>Objects</span>
+                    <div class="object-list-buttons">
+                        <button id="btn-add-object" title="Add Object">+</button>
+                        <button id="btn-delete-object" title="Delete Object">−</button>
+                    </div>
+                </div>
+                <div id="object-list"></div>
+            </aside>
+
+            <!-- Stage Panel -->
+            <section id="stage-panel">
+                <div id="stage-container">
+                    <canvas id="stage-canvas"></canvas>
+                </div>
+            </section>
+
+            <!-- Property Panel -->
+            <aside id="property-panel">
+                <h3>Properties</h3>
+                <div id="property-content">
+                    <div class="property-section">
+                        <h4>Object</h4>
+                        <div class="property-row">
+                            <label>Name:</label>
+                            <input type="text" id="prop-object-name" placeholder="Object1" value="Object1">
+                        </div>
+                        <div class="property-row">
+                            <button id="btn-load-image" title="Load Preview Image">Load Image</button>
+                            <input type="file" id="file-input-image" accept="image/*" hidden>
+                        </div>
+                    </div>
+                    <div class="property-section">
+                        <h4>Transform</h4>
+                        <div class="property-row">
+                            <label>X:</label>
+                            <input type="number" id="prop-x" step="1" value="0">
+                            <button class="btn-keyframe" data-prop="x" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>Y:</label>
+                            <input type="number" id="prop-y" step="1" value="0">
+                            <button class="btn-keyframe" data-prop="y" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>Angle:</label>
+                            <input type="number" id="prop-angle" step="1" value="0">
+                            <span>°</span>
+                            <button class="btn-keyframe" data-prop="angle" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>Scale X:</label>
+                            <input type="number" id="prop-scaleX" step="0.01" value="1">
+                            <button class="btn-keyframe" data-prop="scaleX" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>Scale Y:</label>
+                            <input type="number" id="prop-scaleY" step="0.01" value="1">
+                            <button class="btn-keyframe" data-prop="scaleY" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                    </div>
+                    <div class="property-section">
+                        <h4>Appearance</h4>
+                        <div class="property-row">
+                            <label>Opacity:</label>
+                            <input type="range" id="prop-opacity-slider" min="0" max="255" value="255">
+                            <input type="number" id="prop-opacity" min="0" max="255" value="255">
+                            <button class="btn-keyframe" data-prop="opacity" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>Z-Index:</label>
+                            <input type="number" id="prop-zIndex" step="1" value="0">
+                            <button class="btn-keyframe" data-prop="zIndex" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>
+                                <input type="checkbox" id="prop-hidden">
+                                Hidden
+                            </label>
+                            <button class="btn-keyframe" data-prop="hidden" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>
+                                <input type="checkbox" id="prop-flipX">
+                                Flip X
+                            </label>
+                            <button class="btn-keyframe" data-prop="flipX" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                        <div class="property-row">
+                            <label>
+                                <input type="checkbox" id="prop-flipY">
+                                Flip Y
+                            </label>
+                            <button class="btn-keyframe" data-prop="flipY" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                    </div>
+                    <div class="property-section">
+                        <h4>Animation</h4>
+                        <div class="property-row">
+                            <label>Name:</label>
+                            <input type="text" id="prop-animationName" placeholder="idle">
+                            <button class="btn-keyframe" data-prop="animationName" title="Add/Remove Keyframe">◆</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Timeline Panel -->
+        <section id="timeline-panel">
+            <div id="timeline-header">
+                <div id="timeline-controls">
+                    <button id="btn-play" title="Play/Pause (Space)">▶</button>
+                    <button id="btn-stop" title="Stop">■</button>
+                    <input type="number" id="current-time" step="0.01" min="0" value="0.00" title="Current Time">
+                    <span>/</span>
+                    <span id="total-time">3.00s</span>
+                    <div class="toolbar-separator"></div>
+                    <label>Duration:</label>
+                    <input type="number" id="input-duration" min="0.1" step="0.1" value="3.0">
+                    <span>sec</span>
+                    <label>
+                        <input type="checkbox" id="input-loop">
+                        Loop
+                    </label>
+                    <div id="easing-section" class="hidden">
+                        <div class="toolbar-separator"></div>
+                        <select id="easing-type">
+                            <option value="linear">Linear</option>
+                            <option value="cubicBezier">Cubic Bezier</option>
+                            <option value="step">Step</option>
+                        </select>
+                        <select id="easing-preset" class="hidden">
+                            <option value="custom">Custom</option>
+                            <option value="easeInOut">Ease In-Out</option>
+                            <option value="easeIn">Ease In</option>
+                            <option value="easeOut">Ease Out</option>
+                            <option value="easeInBack">Ease In Back</option>
+                            <option value="easeOutBack">Ease Out Back</option>
+                            <option value="easeInOutCubic">Ease In-Out Cubic</option>
+                            <option value="easeInCubic">Ease In Cubic</option>
+                            <option value="easeOutCubic">Ease Out Cubic</option>
+                        </select>
+                        <input type="text" id="bezier-values" placeholder="0.42, 0, 0.58, 1" readonly class="hidden">
+                        <button id="btn-edit-bezier" class="hidden">Edit</button>
+                    </div>
+                    <div class="toolbar-separator"></div>
+                    <div class="toolbar-group">
+                        <button id="btn-load" title="Load JSON (Ctrl+O)">Load JSON</button>
+                        <button id="btn-save" title="Save JSON (Ctrl+S)">Save JSON</button>
+                        <input type="file" id="file-input-json" accept=".json" hidden>
+                    </div>
+                </div>
+                <div id="timeline-ruler"><div id="timeline-ruler-inner"></div></div>
+            </div>
+            <div id="timeline-body">
+                <div id="track-labels">
+                    <div class="track-label" data-track="x">X</div>
+                    <div class="track-label" data-track="y">Y</div>
+                    <div class="track-label" data-track="angle">Angle</div>
+                    <div class="track-label" data-track="scaleX">Scale X</div>
+                    <div class="track-label" data-track="scaleY">Scale Y</div>
+                    <div class="track-label" data-track="opacity">Opacity</div>
+                    <div class="track-label" data-track="zIndex">Z-Index</div>
+                    <div class="track-label" data-track="hidden">Hidden</div>
+                    <div class="track-label" data-track="flipX">Flip X</div>
+                    <div class="track-label" data-track="flipY">Flip Y</div>
+                    <div class="track-label" data-track="animationName">Anim Name</div>
+                </div>
+                <div id="timeline-tracks-container">
+                    <div id="timeline-tracks">
+                        <div class="track" data-track="x"></div>
+                        <div class="track" data-track="y"></div>
+                        <div class="track" data-track="angle"></div>
+                        <div class="track" data-track="scaleX"></div>
+                        <div class="track" data-track="scaleY"></div>
+                        <div class="track" data-track="opacity"></div>
+                        <div class="track" data-track="zIndex"></div>
+                        <div class="track" data-track="hidden"></div>
+                        <div class="track" data-track="flipX"></div>
+                        <div class="track" data-track="flipY"></div>
+                        <div class="track" data-track="animationName"></div>
+                    </div>
+                    <div id="playhead"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Load Source Modal -->
+    <div id="load-source-modal" class="modal hidden">
+        <div class="modal-content modal-content-small">
+            <div class="modal-header">
+                <h3>Load JSON</h3>
+                <button id="btn-close-load-source" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body load-source-body">
+                <button id="btn-load-from-file" class="load-source-btn">📁 From File</button>
+                <button id="btn-load-from-clipboard" class="load-source-btn">📋 From Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clipboard Fallback Modal (Paste) -->
+    <div id="clipboard-paste-modal" class="modal hidden">
+        <div class="modal-content modal-content-clipboard">
+            <div class="modal-header">
+                <h3>Paste JSON</h3>
+                <button id="btn-close-clipboard-paste" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body clipboard-modal-body">
+                <p class="clipboard-hint">Paste your JSON here (Ctrl+V):</p>
+                <textarea id="clipboard-paste-textarea" placeholder="Paste JSON here..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-clipboard-paste-cancel">Cancel</button>
+                <button id="btn-clipboard-paste-load">Load</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clipboard Fallback Modal (Copy) -->
+    <div id="clipboard-copy-modal" class="modal hidden">
+        <div class="modal-content modal-content-clipboard">
+            <div class="modal-header">
+                <h3>Copy AI Prompt</h3>
+                <button id="btn-close-clipboard-copy" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body clipboard-modal-body">
+                <p class="clipboard-hint">Select all and copy (Ctrl+A, Ctrl+C):</p>
+                <textarea id="clipboard-copy-textarea" readonly></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-clipboard-copy-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bezier Editor Modal -->
+    <div id="bezier-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Bezier Curve Editor</h3>
+                <button id="btn-close-bezier" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="bezier-editor-container">
+                    <canvas id="bezier-canvas" width="300" height="580"></canvas>
+                </div>
+                <div id="bezier-controls">
+                    <div class="bezier-input-group">
+                        <label>P1:</label>
+                        <input type="number" id="bezier-x1" step="0.01" min="0" max="1" value="0.42">
+                        <input type="number" id="bezier-y1" step="0.01" value="0">
+                    </div>
+                    <div class="bezier-input-group">
+                        <label>P2:</label>
+                        <input type="number" id="bezier-x2" step="0.01" min="0" max="1" value="0.58">
+                        <input type="number" id="bezier-y2" step="0.01" value="1">
+                    </div>
+                    <div class="bezier-presets">
+                        <button data-preset="easeInOut">Ease In-Out</button>
+                        <button data-preset="easeIn">Ease In</button>
+                        <button data-preset="easeOut">Ease Out</button>
+                        <button data-preset="easeInBack">Ease In Back</button>
+                        <button data-preset="easeOutBack">Ease Out Back</button>
+                        <button data-preset="easeInOutCubic">Ease In-Out Cubic</button>
+                        <button data-preset="easeInCubic">Ease In Cubic</button>
+                        <button data-preset="easeOutCubic">Ease Out Cubic</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-bezier-cancel">Cancel</button>
+                <button id="btn-bezier-apply">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/history.js"></script>
+    <script src="js/stage.js"></script>
+    <script src="js/timeline.js"></script>
+    <script src="js/properties.js"></script>
+    <script src="js/bezierEditor.js"></script>
+    <script src="js/fileIO.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+<script defer src="vendor/htmlgame.js" type="text/javascript"></script>
